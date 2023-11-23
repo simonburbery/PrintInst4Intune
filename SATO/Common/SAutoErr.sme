@@ -1,0 +1,105 @@
+-10 0 Printer does not support bidirectional communication through the current port
+-9 0 Checking printer status...
+-8 0 Viewing printer report, status unavailable
+-7 0 Configuring printer settings, status unavailable
+-6 0 Initial check of printer status...
+-5 0 Printer busy
+-4 3 Printer in unknown mode, Errcode :
+-3 0 Printing...
+-2 0 Printing & buffering data...
+-1 5 Not accessible
+0 5 Not accessible
+48 0 Offline - No error
+49 3 Offline - Ribbon or paper near end
+50 3 Offline - Buffer near full
+51 3 Offline - Ribbon or paper near end and Buffer near full
+52 0 Offline - Pause
+53 3 Offline - Battery near end
+54 3 Offline - Battery near end and Ribbon near end
+55 3 Offline - Battery near end and Buffer near full
+56 3 Offline - Battery near end and Ribbon near end and and Buffer near full
+65 0 Wait to receive - No error
+66 3 Wait to receive - Ribbon or paper near end
+67 3 Wait to receive - Buffer near full
+68 3 Wait to receive - Ribbon or paper near end and Buffer near full
+69 0 Wait to receive - Pause
+33 3 Wait to receive - Battery near end                                           
+34 3 Wait to receive - Battery near end and Ribbon near end                       
+35 3 Wait to receive - Battery near end and Buffer near full                      
+36 3 Wait to receive - Battery near end and Ribbon near end and and Buffer near full
+71 0 Printing - No error
+72 3 Printing - Ribbon or paper near end
+73 3 Printing - Buffer near full
+74 3 Printing - Ribbon or paper near end and Buffer near full
+75 0 Printing - Pause
+37 3 Printing - Battery near end                                           
+38 3 Printing - Battery near end and Ribbon near end                       
+39 3 Printing - Battery near end and Buffer near full                      
+40 3 Printing - Battery near end and Ribbon near end and and Buffer near full
+77 0 Standby - No error
+78 3 Standby - Ribbon or paper near end
+79 3 Standby - Buffer near full
+80 3 Standby - Ribbon or paper near end and Buffer near full
+81 0 Standby - Pause
+41 3 Standby - Battery near end                                           
+42 3 Standby - Battery near end and Ribbon near end                       
+43 3 Standby - Battery near end and Buffer near full                      
+44 3 Standby - Battery near end and Ribbon near end and and Buffer near full
+83 0 Analyzing or Editing - No error
+84 3 Analyzing or Editing - Ribbon or paper near end
+85 3 Analyzing or Editing - Buffer near full
+86 3 Analyzing or Editing - Ribbon or paper near end and Buffer near full
+87 0 Analyzing or Editing - Pause
+45 3 Analyzing or Editing - Battery near end                                           
+46 3 Analyzing or Editing - Battery near end and Ribbon near end                       
+47 3 Analyzing or Editing - Battery near end and Buffer near full                      
+64 3 Analyzing or Editing - Battery near end and Ribbon near end and and Buffer near full
+97 1 Buffer over
+98 1 Print head open
+99 1 Out of paper
+100 1 Out of ribbon
+101 1 Media error
+102 1 Sensor error
+103 1 Head error
+104 1 Cutter open error
+105 1 Card error
+106 1 Cutter error
+107 1 Other errors
+111 1 IC tag error
+113 1 Battery error
+2048 0 Offline
+2049 0 Wait to receive
+2050 0 Printing
+2051 0 Standby (Wait to dispense or cut)
+2052 0 Analyzing or Editing
+2053 1 Error
+2054 3 Pause
+1048 0 No error
+1049 3 Ribbon near end
+1050 3 Buffer near full
+1051 3 Ribbon near end and Buffer near full
+1052 3 Paper near end
+1053 3 Paper near end and Ribbon near end
+1054 3 Paper near end and Buffer near full
+1055 3 Paper near end and Ribbon near end and Buffer near full
+1065 1 Machine error
+1066 1 Flash ROM error
+1067 1 Print head open
+1068 1 Out of paper
+1069 1 Out of ribbon
+1070 1 Sensor error
+1071 1 Print head error
+1072 1 Cartridge read/write error
+1073 1 Cartridge full
+1074 1 Cutter error
+1075 1 Calendar error
+1076 1 Kanji ROM error
+1077 1 Rewind full
+1078 1 Cutter open
+1079 1 RFID tag error
+1080 1 RFID protect error
+1081 1 BCC error
+1082 1 Item No. error
+1083 1 Media error
+1084 1 Nonlock error
+1085 1 Other errors
