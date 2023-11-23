@@ -1,0 +1,159 @@
+# start
+$rootfolder     = "c:\temp"                                 # folder containing folders and files extracted from downloaded print drivers.
+# $rootfolder   = ".\"                                      # change for Intune package
+$inputfile      = "$rootfolder\client printer details.txt"  # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'.
+$colour         = $false                                    # default to black only, set to $true for colour
+$duplex         = "Onesided"                                # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
+$filterinf      = "*.inf"
+$filtercer      = "*.cer"
+$certstore      = "cert:\LocalMachine\Root"
+$logfile        = "$rootfolder\_print-component_log_$env:COMPUTERNAME" + "_$env:USERNAME.log"
+# $logfile        = "$env:TEMP\_print-component_log.txt"    # change for Intune package
+$warningcount   = 0
+
+$null = Start-Transcript -Path $logfile
+    
+Do { Restart-Service Spooler } until (Get-Service Spooler | Where-Object { $_.Status -eq "Running" })
+
+if (-not(Test-Path -Path $rootfolder -ErrorAction Ignore)) {
+    throw "The root folder does not exist!"
+}
+if (-not(Test-Path -Path $inputfile -ErrorAction Ignore)) {
+    throw "The input file does not exist!"
+}
+
+$printerdetails = Import-Csv $inputfile -Delimiter "`t" 
+
+$cerdetail  = Get-ChildItem -Path $rootfolder -Filter $filtercer -File -Recurse
+$infdetail  = Get-ChildItem -Path $rootfolder -Filter $filterinf -File -Recurse
+
+Clear-Host
+Write-Output "" 
+Write-Output "Installing any certificates found in $rootfolder..."
+Write-Output ""
+
+foreach ($cer in $cerdetail) {
+    $cerpath   = $cer.FullName
+    Import-Certificate -FilePath $cerpath -CertStoreLocation $certstore
+}
+
+Clear-Host
+Write-Output "" 
+Write-Output "Importing any drivers found in $rootfolder..."
+Write-Output "" 
+
+foreach ($inf in $infdetail) {
+    $inffilename      = $inf.Name
+    $infpath          = $inf.FullName
+
+Start-Process "Pnputil.exe" -ArgumentList "/add-driver $infpath /install" -Wait
+    if ($? -ne "True") {
+        Write-Warning "!!! Failed to install $inffilename"
+        $warningcount = $warningcount + 1
+    } else {
+        Write-Output ""
+        Write-Output "Success importing drivers in $infpath"
+        Write-Output ""
+      }
+}
+
+Clear-Host
+Write-Output ""
+Write-Output "Adding drivers, creating ports and printers specified in $inputfile..."
+Write-Output ""
+
+foreach ($printer in $printerdetails) {
+    $printername    = $printer.PrinterName
+    $drivername     = $printer.DriverName
+    $ipaddress      = $printer.IPAddress
+    $port           = $printer.Port
+    $location       = $printer.Location
+
+Add-PrinterDriver -Name $drivername
+    if ($? -ne "True") {    
+        Write-Warning "!!! Failed to install $drivername driver for $printername"
+        $warningcount = $warningcount + 1
+    } else {
+        Write-Output "Success installing $drivername driver for $printername"
+        Write-Output ""
+      }
+
+if (-not(Get-PrinterPort -Name "tcpip_$ipaddress" -ErrorAction Ignore)) { 
+    Add-PrinterPort -Name "tcpip_$ipaddress" -PrinterHostAddress $ipaddress -PortNumber $port
+        if ($? -ne "True") {    
+            Write-Warning "!!! Failed to install tcpip_$ipaddress port for $printername"
+            $warningcount = $warningcount + 1
+        } else {
+            Write-Output "Success installing tcpip_$ipaddress port for $printername"
+            Write-Output ""
+          }
+} else {
+    Write-Output "Port tcpip_$ipaddress exists... skipping"
+    Write-Output ""
+  }
+
+<###
+
+# Uncomment this section or split it out depending on whether all printers can be deployed to all workstations, and whether you will deploy 
+# one driver package (or many), using this commented code to enable different groups of printers based on user groups.
+# Using columns in the InputFile allows for granularity, IP Address and another added column like Department you can go as granular as you like, but keep an eye on complexity.  
+# If the setup is getting complex perhaps a paid cloud service is a better option for you.
+# Alternatively, use this section in separate scripts to deploy specific printer(s) to different groups of users making it easier to set a default.
+# Use the system context in your deployment as it is required to set the print configuration.
+
+if (-not(Get-Printer -Name $printername -ErrorAction Ignore)) {
+    Add-Printer -Name $printername -DriverName $drivername -PortName "tcpip_$ipaddress" -Comment "$ipaddress - $drivername" -Location $location
+        if ($? -ne "True") {    
+            Write-Warning "Failed to add $printername"
+            $warningcount = $warningcount + 1
+        } else {
+            Write-Output "Success adding $printername"
+            Write-Output ""
+          }
+} else {
+    Write-Output "Printer $printername exists... skipping"
+    Write-Output ""
+  }
+
+Set-PrintConfiguration -PrinterName $printername -Color $colour -DuplexingMode $duplex
+    if ($? -ne "True") {    
+        Write-Warning "!!! Failed to set properties for $printername"
+        $warningcount = $warningcount + 1
+    } else {
+        Write-Output "Success setting properties for $printername"
+        Write-Output ""
+      }
+
+# if deploying to groups we can set the default printer using only the Class and Invoke-CimMethod lines, or we could use an if statement using the location column.
+# e.g. HR,Sales,Accounts or AKL,WLG,CHC or NZL,AUS,USA. Or you can add column(s) and data to the input file to cater for any environment.
+if ($location -eq "Auckland") {
+    $defaultprinter = Get-CimInstance -Class Win32_Printer -Filter "Name='$printername'"
+    Invoke-CimMethod -InputObject $defaultprinter -MethodName SetDefaultPrinter
+        if ($? -ne "True") {    
+            Write-Warning "!!! Failed to set $printername as default"
+            $warningcount = $warningcount + 1
+    } else {
+        Write-Output "Success setting $printername as default"
+        Write-Output ""
+      }
+}
+
+#>
+
+}
+
+$null = Stop-Transcript
+Clear-Host
+
+    if ($warningcount -eq 0) {
+        Write-Output ""
+        Write-Output "No errors occurred - all system print components installed successfully."
+        Write-Output "Log file saved to $logfile." 
+    }
+
+    if ($warningcount -ne 0) { 
+        Write-Output ""
+        Write-Output "There were $warningcount errors - please review $logfile."
+    }
+
+# end
