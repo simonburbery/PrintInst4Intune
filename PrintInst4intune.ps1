@@ -6,17 +6,15 @@
 #            Or that part of the script starting with <### and ending with ###> can be separated out and deployed separately to add printers    
 #
 # run with Administrative rights, or for Intune deploy in System context to groups of devices or users
-
-$rootfolder     = "c:\temp"                                        # any folder containing folders and files extracted from downloaded print drivers
-# $rootfolder   = ".\"                                             ### use this one for Intune
+Set-Location C:\Temp
+$rootfolder     = "c:\temp\"                                      # for intune use $rootfolder = ".\" 
 $inputfile      = "$rootfolder" + "AddPrinterInputFile.txt"       # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
-# $colour         = $false                                        # use in user script, or uncomment if adding printers w  - default to black only, set to $true for colour
-# $duplex         = "Onesided"                                    # use in user script - default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
+$colour         = $false                                          # default to black only, set to $true for colour
+$duplex         = "Onesided"                                      # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
 $filterinf      = "*.inf"                                         # the files in the root folder structure that enable the import and installation of printer drivers 
 $filtercer      = "*.cer"                                         # the certificate files that may exist in the source structure
 $certstore      = "cert:\LocalMachine\Root"                       # the local machine certificate store to which cer files are imported
-$logfile        = "$rootfolder" + "_printinst4intune.log"         # the result of every action is logged here
-# $logfile        = "$env:TEMP" + "\_printinst4intune.log"         ### use this one for Intune
+$logfile        = "$rootfolder" + "_PrintInsts4intune.log"        # for intune use $logfile = "$env:TEMP" + "\_printinst4intune.log"
 $warningcount   = 0                                               # any actions that fail increment this counter
 
 $null = Start-Transcript -Path $logfile
@@ -32,10 +30,10 @@ Do {
 } until (Get-Service Spooler | Where-Object { $_.Status -eq "Running" })
 
 if (-not(Test-Path -Path $rootfolder -ErrorAction Ignore)) {
-    throw "The root folder does not exist!"
+    throw "The root folder $rootfolder does not exist!"
 }
 if (-not(Test-Path -Path $inputfile -ErrorAction Ignore)) {
-    throw "The input file does not exist!"
+    throw "The input file $inputfile does not exist!"
 }
 
 $cerdetail  = Get-ChildItem -Path $rootfolder -Filter $filtercer -File -Recurse
@@ -114,11 +112,11 @@ if (-not(Get-PrinterPort -Name "tcpip_$ipaddress" -ErrorAction Ignore)) {
 # You could install many drivers in one package, then use this part of the script deployed with different input files to add printers / set as default. 
 # NOTE: Use the system context in your user targeted deployments as it is required to set the print configurations (at this stage unconfirmed) 
 
-$rootfolder     = "c:\temp"                                       # for intune use $rootfolder = ".\" 
+$rootfolder     = "c:\temp\"                                      # for intune use $rootfolder = ".\" 
 $inputfile      = "$rootfolder" + "AddPrinterInputFile.txt"       # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
-$colour         = "$false"                                        # $false for greyscale, $true for colour
+$colour         = $false                                          # $false for greyscale, $true for colour
 $duplex         = "Onesided"                                      # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
-$logfile        = "$rootfolder" + "_addprinters4intune.log"       # for intune use $logfile = "$env:TEMP" + "\_addprinters4intune.log"
+$logfile        = "$rootfolder" + "_PrintInsts4intune.log"        # for intune use $logfile = "$env:TEMP" + "\_addprinters4intune.log"
 
 $printerdetails = Import-Csv $inputfile -Delimiter "`t" 
 
