@@ -1,8 +1,0 @@
-PrinterName	DriverName	IPAddress	Port	Location
-sydprint1	SATO CL4NX Plus 203dpi	192.168.100.99	9100	Sydney
-melprint1	Xerox Global Print Driver PCL6	192.168.100.100	9100	Melbourne
-aklprint1	SATO CL4NX Plus 305dpi	192.168.100.101	9100	Auckland
-wlgprint1	Xerox Global Print Driver PCL6	192.168.100.102	9100	Wellington
-chcprint1	SATO PW4NX	192.168.100.103	9100	Christchurch
-perprint1	Xerox GPD PCL6 V5.951.9.0	192.168.100.104	9100	Perth
-adlprint1	SATO CT4-LX 305dpi	192.168.100.105	9100	Adelaide
