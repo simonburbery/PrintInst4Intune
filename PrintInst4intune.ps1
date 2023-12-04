@@ -9,8 +9,8 @@
 Set-Location C:\Temp
 $rootfolder     = "c:\temp\"                                      # for intune use $rootfolder = ".\" 
 $inputfile      = "$rootfolder" + "AddPrinterInputFile.txt"       # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
-$colour         = $false                                          # default to black only, set to $true for colour
-$duplex         = "Onesided"                                      # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
+# $colour         = $false                                          # default to black only, set to $true for colour
+# $duplex         = "Onesided"                                      # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
 $filterinf      = "*.inf"                                         # the files in the root folder structure that enable the import and installation of printer drivers 
 $filtercer      = "*.cer"                                         # the certificate files that may exist in the source structure
 $certstore      = "cert:\LocalMachine\Root"                       # the local machine certificate store to which cer files are imported
@@ -106,10 +106,10 @@ if (-not(Get-PrinterPort -Name "tcpip_$ipaddress" -ErrorAction Ignore)) {
   }
 }
 
-# <### Add printers and set properties
+<### Add printers and set properties
 
 # Uncomment this section or run it as a separate script, depending on whether you can deploy all drivers and all printers in one script.
-# You could install many drivers in one package, then use this part of the script deployed with different input files to add printers / set as default. 
+# You could install all required drivers in one package, then use this part of the script deployed with different input files to add printers / set as default. 
 # NOTE: Use the system context in your user targeted deployments as it is required to set the print configurations (at this stage unconfirmed) 
 
 $rootfolder     = "c:\temp\"                                      # for intune use $rootfolder = ".\"
@@ -155,7 +155,7 @@ Set-PrintConfiguration -PrinterName $printername -Color $colour -DuplexingMode $
 
 # if deploying to groups we can set the default printer using only the Class and Invoke-CimMethod lines.
 # or we could use an if statement using the location or another column. e.g. HR,Sales,Accounts or AKL,WLG,CHC. 
-# Add column(s) and data to the input file to cater for your needs.
+# Add column(s) and data to the input file to cater for your scenario.
 if ($location -eq "AKL") {
     $defaultprinter = Get-CimInstance -Class Win32_Printer -Filter "Name='$printername'"
     Invoke-CimMethod -InputObject $defaultprinter -MethodName SetDefaultPrinter
@@ -169,7 +169,7 @@ if ($location -eq "AKL") {
 }
 }
 
-# ###>
+###>
 
 $null = Stop-Transcript
 Clear-Host
