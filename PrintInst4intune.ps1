@@ -5,8 +5,8 @@
 # [Optional] can also add the printers to the user session, set printer preferences and set a default printer
 #            Or that part of the script starting with <### and ending with ###> can be separated out and deployed separately to add printers    
 #
-# run with Administrative rights, or for Intune deploy in System context to groups of devices or users
-Set-Location C:\Temp
+# run with Administrative rights, or for Intune deploy in System context to groups of users
+
 $rootfolder     = "c:\temp\"                                      # for intune use $rootfolder = ".\" 
 $inputfile      = "$rootfolder" + "AddPrinterInputFile.txt"       # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
 # $colour         = $false                                          # default to black only, set to $true for colour
