@@ -7,7 +7,7 @@ PrintInst4Intune
  - installs any driver signing certificates (cer) found within a source folder.
  - installs any print drivers (inf)
  - creates TCP/IP printer ports on the workstation.
- - 
+
 Prep - list the actual driver names required for the input file (advanced tab on a Windows printer queue); extract all print drivers into a source folder  
  along with the script.
 Deploy in System context to devices.
