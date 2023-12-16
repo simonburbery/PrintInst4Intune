@@ -1,16 +1,14 @@
 # 
 # Installs any driver signing certificates (cer) and print drivers (inf) found within a source folder
-# Extract all print drivers into the same folder as the script - run in system context 
-#
-# [Optional] can also add the printers to the user session, set printer preferences and set a default printer
-#            Or that part of the script starting with <### and ending with ###> can be separated out and deployed separately to add printers    
-#
+# Extract all print drivers into the same folder as the script - run in system context.
+# Run the 
+
 # run with Administrative rights, or for Intune deploy in System context to groups of users
 
 $rootfolder     = "c:\temp\"                                      # for intune use $rootfolder = ".\" 
 $inputfile      = "$rootfolder" + "AddPrinterInputFile.txt"       # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
-# $colour         = $false                                          # default to black only, set to $true for colour
-# $duplex         = "Onesided"                                      # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
+# moved to PrintInst4intune-user.ps1 ==> $colour         = $false         # default to black only, set to $true for colour
+# moved to PrintInst4intune-user.ps1 ==> $duplex         = "Onesided"     # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
 $filterinf      = "*.inf"                                         # the files in the root folder structure that enable the import and installation of printer drivers 
 $filtercer      = "*.cer"                                         # the certificate files that may exist in the source structure
 $certstore      = "cert:\LocalMachine\Root"                       # the local machine certificate store to which cer files are imported
@@ -39,34 +37,45 @@ if (-not(Test-Path -Path $inputfile -ErrorAction Ignore)) {
 $cerdetail  = Get-ChildItem -Path $rootfolder -Filter $filtercer -File -Recurse
 $infdetail  = Get-ChildItem -Path $rootfolder -Filter $filterinf -File -Recurse
 
-Clear-Host
-Write-Output "" 
-Write-Output "Installing any certificates found in $rootfolder..."
-Write-Output ""
-
-foreach ($cer in $cerdetail) {
-    $cerpath   = $cer.FullName
-    Import-Certificate -FilePath $cerpath -CertStoreLocation $certstore
+if ($null = $cerdetail) {
+    Write-Output "" 
+    Write-Output "No certificates found in $rootfolder..."
+    Write-Output ""
+} else {
+    Clear-Host
+    Write-Output "" 
+    Write-Output "Installing certificates found in $rootfolder..."
+    Write-Output ""
+    
+    foreach ($cer in $cerdetail) {
+        $cerpath   = $cer.FullName
+        Import-Certificate -FilePath $cerpath -CertStoreLocation $certstore
+    }    
 }
 
-Clear-Host
-Write-Output "" 
-Write-Output "Importing any drivers found in $rootfolder..."
-Write-Output "" 
-
-foreach ($inf in $infdetail) {
-    $infpath          = $inf.FullName
-
-Start-Process "Pnputil.exe" -ArgumentList "/add-driver $infpath /install" -Wait
-    if ($? -ne "True") {
-        Write-Warning "!!! Failed to import drivers from $infpath"
-        $warningcount = $warningcount + 1
-    } else {
-        Write-Output ""
-        Write-Output "Successfully imported drivers from $infpath"
-        Write-Output ""
-      }
-}
+if ($null = $infdetail) {
+    Write-Output "" 
+    throw "No INF files found in $rootfolder... exiting."
+} else {
+    Clear-Host
+    Write-Output "" 
+    Write-Output "Importing drivers found in $rootfolder..."
+    Write-Output "" 
+    
+    foreach ($inf in $infdetail) {
+        $infpath = $inf.FullName
+    
+    Start-Process "Pnputil.exe" -ArgumentList "/add-driver $infpath /install" -Wait
+        if ($? -ne "True") {
+            Write-Warning "!!! Failed to import drivers from $infpath"
+            $warningcount = $warningcount + 1
+        } else {
+            Write-Output ""
+            Write-Output "Successfully imported drivers from $infpath"
+            Write-Output ""
+          }
+    }    
+}    
 
 Clear-Host
 Write-Output ""
@@ -106,15 +115,11 @@ if (-not(Get-PrinterPort -Name "tcpip_$ipaddress" -ErrorAction Ignore)) {
   }
 }
 
-<### Add printers and set properties
+# Add printers, set properties and default printer
 
-# Uncomment this section or run it as a separate script, depending on whether you can deploy all drivers and all printers in one script.
-# You could install all required drivers in one package, then use this part of the script deployed with different input files to add printers / set as default. 
-# NOTE: Use the system context in your user targeted deployments as it is required to set the print configurations (at this stage unconfirmed) 
-
-$rootfolder     = "c:\temp\"                                      # for intune use $rootfolder = ".\"
+$rootfolder     = "c:\temp\"                                      # for intune or other deployment software use $rootfolder = ".\"
 Set-Location $rootfolder
-$inputfile      = "$rootfolder" + "AddPrinterInputFile.txt"       # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
+$inputfile      = $rootfolder + "PrinterInputFile.txt"          # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
 $colour         = $false                                          # $false for greyscale, $true for colour
 $duplex         = "Onesided"                                      # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
 $logfile        = "$rootfolder" + "_PrintInst4intune.log"         # for intune use $logfile = "$env:TEMP" + "\_addprinters4intune.log"
@@ -153,7 +158,7 @@ Set-PrintConfiguration -PrinterName $printername -Color $colour -DuplexingMode $
 
 # Set default printer
 
-# if deploying to groups we can set the default printer using only the Class and Invoke-CimMethod lines.
+# if deploying to groups we can set the default printer using only the Class and Invoke-CimMethod lines without an if statement.
 # or we could use an if statement using the location or another column. e.g. HR,Sales,Accounts or AKL,WLG,CHC. 
 # Add column(s) and data to the input file to cater for your scenario.
 if ($location -eq "AKL") {
@@ -169,16 +174,14 @@ if ($location -eq "AKL") {
 }
 }
 
-###>
-
 $null = Stop-Transcript
 Clear-Host
 
-    if ($warningcount -eq 0) {
-        Write-Output ""
-        Write-Output "No errors occurred - all system print components installed successfully"
-        Write-Output "Log file saved to $logfile." 
-    } else {
-        Write-Output ""
-        Write-Output "There were $warningcount errors - please review $logfile"
-    }
+if ($warningcount -eq 0) {
+    Write-Output ""
+    Write-Output "No errors occurred - printers added successfully"
+    Write-Output "Log file saved to $logfile." 
+} else {
+    Write-Output ""
+    Write-Output "There were $warningcount errors - please review $logfile"
+  }
