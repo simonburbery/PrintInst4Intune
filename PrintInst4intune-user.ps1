@@ -44,8 +44,9 @@ Set-PrintConfiguration -PrinterName $printername -Color $colour -DuplexingMode $
 # Set default printer
 
 # if deploying with groups, you may have two queues for the printer 
-# i.e. one to add the printer and another to add the printer and make it default. In this situation we can set the default printer using only the Class and Invoke-CimMethod lines without an if statement.
-# or we could use an if statement using the location or another column. e.g. HR,Sales,Accounts or AKL,WLG,CHC. 
+# i.e. one to add the printer and another to add the printer and make it default. 
+# In this situation we can set the default printer using only the Class and Invoke-CimMethod lines without an if statement.
+# or we could use an if statement using the location or another column from the input file. e.g. HR,Sales,Accounts or AKL,WLG,CHC. 
 # Add column(s) and data to the input file to cater for your scenario.
 if ($printername -eq "AKL-Default") {
     $defaultprinter = Get-CimInstance -Class Win32_Printer -Filter "Name='$printername'"
@@ -60,7 +61,7 @@ if ($printername -eq "AKL-Default") {
 }
 # }
 
-$null = Stop-Transcript -f
+$null = Stop-Transcript
 Clear-Host
 
 if ($warningcount -eq 0) {
