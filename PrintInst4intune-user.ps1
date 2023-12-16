@@ -5,7 +5,7 @@ Set-Location $rootfolder
 $inputfile      = $rootfolder + "PrinterDetails.txt"              # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
 $colour         = $false                                          # $false for greyscale, $true for colour
 $duplex         = "Onesided"                                      # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
-$logfile        = "$rootfolder" + "_PrintInst4intune.log"         # for intune use $logfile = "$env:TEMP" + "\_addprinters4intune.log"
+$logfile        = "$rootfolder" + "_PrintInst4intune.log"         # for intune use $logfile = "$env:TEMP" + "\_PrintInst4intune.log"
 
 $null = Start-Transcript $logfile -Append -Force
 
@@ -40,10 +40,11 @@ Set-PrintConfiguration -PrinterName $printername -Color $colour -DuplexingMode $
         Write-Output "Success setting properties for $printername"
         Write-Output ""
       }
-
+    }
 # Set default printer
 
-# if deploying to groups we can set the default printer using only the Class and Invoke-CimMethod lines without an if statement.
+# if deploying with groups, you may have two queues for the printer 
+# i.e. one to add the printer and another to add the printer and make it default. In this situation we can set the default printer using only the Class and Invoke-CimMethod lines without an if statement.
 # or we could use an if statement using the location or another column. e.g. HR,Sales,Accounts or AKL,WLG,CHC. 
 # Add column(s) and data to the input file to cater for your scenario.
 if ($printername -eq "AKL-Default") {
@@ -59,7 +60,7 @@ if ($printername -eq "AKL-Default") {
 }
 # }
 
-$null = Stop-Transcript
+$null = Stop-Transcript -f
 Clear-Host
 
 if ($warningcount -eq 0) {
