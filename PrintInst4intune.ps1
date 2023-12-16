@@ -6,7 +6,7 @@
 # run with Administrative rights, or for Intune deploy in System context to groups of users
 
 $rootfolder     = "c:\temp\"                                      # for intune use $rootfolder = ".\" 
-$inputfile      = "$rootfolder" + "AddPrinterInputFile.txt"       # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
+$inputfile      = "$rootfolder" + "PrinterDetails.txt"       # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
 # moved to PrintInst4intune-user.ps1 ==> $colour         = $false         # default to black only, set to $true for colour
 # moved to PrintInst4intune-user.ps1 ==> $duplex         = "Onesided"     # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
 $filterinf      = "*.inf"                                         # the files in the root folder structure that enable the import and installation of printer drivers 
@@ -119,7 +119,7 @@ if (-not(Get-PrinterPort -Name "tcpip_$ipaddress" -ErrorAction Ignore)) {
 
 $rootfolder     = "c:\temp\"                                      # for intune or other deployment software use $rootfolder = ".\"
 Set-Location $rootfolder
-$inputfile      = $rootfolder + "PrinterInputFile.txt"          # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
+$inputfile      = $rootfolder + "PrinterDetails.txt"              # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
 $colour         = $false                                          # $false for greyscale, $true for colour
 $duplex         = "Onesided"                                      # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
 $logfile        = "$rootfolder" + "_PrintInst4intune.log"         # for intune use $logfile = "$env:TEMP" + "\_addprinters4intune.log"
