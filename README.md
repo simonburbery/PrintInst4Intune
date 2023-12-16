@@ -1,18 +1,21 @@
-
 PrintInst4Intune
+
+ Used for modern workplace printing setups (when they have basic requirements not warranting spend on a cloud printing solution).
+  
+ A two-part script: 
+ **Device-targeted script** - PrintInst4Intune.ps1:
+ - installs any driver signing certificates (cer) found within a source folder.
+ - installs and print drivers (inf)
+ # Prep - list the actual driver names required for the input file (advanced tab on a Windows printer queue); extract all print drivers into a source folder along with the script.
+ # Deploy in System context to devices.
  
- Caters for drivers that prompt durign install - this is usually because the certificate used to sign the driver is either not trusted or has expired. 
- The script will import certs into the root store to allow silent installation. 
+ NOTE: _Expired_ certs may still prompt, preventing a silent install.  In this case you need to reach out to the vendor to provide an up-to-date driver package.
 
- NOTE: Expired certs will still prompt and require a later driver package to be downloaded.
- 
- Installs any driver signing certificates (cer) and print drivers (inf) found within a source folder
- Extract all print drivers into the same folder as the script - run in system context 
+ **User-targeted script:**  PrintInst4Intune-user.ps1:
+ - Adds any printer connections based on group memebership.
+ - Sets the specified printer property defaults.
+ - (optional) sets a default printer based on group membership or input file.
 
- The commented part of the script will add the printers to the user session, set printer preferences (greyscale, single sided) and set a default printer
- The part of the script starting with <### and ending with ###> can be separated out and deployed separately to add the printers and set default.    
+ Deploy using System context to groups of users.
 
- Deploy in System context to groups of users.
-
- TO DO: A 'Default printer' selector the user can click on the desktop to easily change their default.  
- 
+PrintInst4intune
