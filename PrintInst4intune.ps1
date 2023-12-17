@@ -11,7 +11,8 @@ $inputfile      = "$rootfolder" + "PrinterDetails.txt"       # tab delimited fil
 # moved to PrintInst4intune-user.ps1 ==> $duplex         = "Onesided"     # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
 $filterinf      = "*.inf"                                         # the files in the root folder structure that enable the import and installation of printer drivers 
 $filtercer      = "*.cer"                                         # the certificate files that may exist in the source structure
-$certstore      = "cert:\LocalMachine\Root"                       # the local machine certificate store to which cer files are imported
+$certstoreroot  = "Cert:\LocalMachine\Root"                       # the local machine root certificate store to which cer files are imported
+$certstoretrusted  = "Cert:\LocalMachine\TrustedPublisher"        # the local machine trusted publisher certificate store to which cer files are imported
 $logfile        = "$rootfolder" + "_PrintInst4intune.log"         # for intune use $logfile = "$env:TEMP" + "\_printinst4intune.log"
 $warningcount   = 0                                               # any actions that fail increment this counter
 
@@ -49,7 +50,8 @@ if ($null = $cerdetail) {
     
     foreach ($cer in $cerdetail) {
         $cerpath   = $cer.FullName
-        Import-Certificate -FilePath $cerpath -CertStoreLocation $certstore
+        Import-Certificate -FilePath $cerpath -CertStoreLocation $certstoreroot
+        Import-Certificate -FilePath $cerpath -CertStoreLocation $certstoretrusted
     }    
 }
 
@@ -113,65 +115,6 @@ if (-not(Get-PrinterPort -Name "tcpip_$ipaddress" -ErrorAction Ignore)) {
     Write-Output "Port tcpip_$ipaddress exists... skipping"
     Write-Output ""
   }
-}
-
-# Add printers, set properties and default printer
-
-$rootfolder     = "c:\temp\"                                      # for intune or other deployment software use $rootfolder = ".\"
-Set-Location $rootfolder
-$inputfile      = $rootfolder + "PrinterDetails.txt"              # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
-$colour         = $false                                          # $false for greyscale, $true for colour
-$duplex         = "Onesided"                                      # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
-$logfile        = "$rootfolder" + "_PrintInst4intune.log"         # for intune use $logfile = "$env:TEMP" + "\_addprinters4intune.log"
-
-$printerdetails = Import-Csv $inputfile -Delimiter "`t" 
-
-foreach ($printer in $printerdetails) {
-    $printername    = $printer.PrinterName
-    $drivername     = $printer.DriverName
-    $ipaddress      = $printer.IPAddress
-    $port           = $printer.Port
-    $location       = $printer.location
-
-if (-not(Get-Printer -Name $printername -ErrorAction Ignore)) {
-    Add-Printer -Name $printername -DriverName $drivername -PortName "tcpip_$ipaddress" -Comment "$ipaddress - $drivername" -Location $location
-        if ($? -ne "True") {    
-            Write-Warning "Failed to add $printername"
-            $warningcount = $warningcount + 1
-        } else {
-            Write-Output "Success adding $printername"
-            Write-Output ""
-          }
-} else {
-    Write-Output "Printer $printername exists... skipping"
-    Write-Output ""
-  }
-
-Set-PrintConfiguration -PrinterName $printername -Color $colour -DuplexingMode $duplex
-    if ($? -ne "True") {    
-        Write-Warning "!!! Failed to set properties for $printername"
-        $warningcount = $warningcount + 1
-    } else {
-        Write-Output "Success setting properties for $printername"
-        Write-Output ""
-      }
-
-# Set default printer
-
-# if deploying to groups we can set the default printer using only the Class and Invoke-CimMethod lines without an if statement.
-# or we could use an if statement using the location or another column. e.g. HR,Sales,Accounts or AKL,WLG,CHC. 
-# Add column(s) and data to the input file to cater for your scenario.
-if ($location -eq "AKL") {
-    $defaultprinter = Get-CimInstance -Class Win32_Printer -Filter "Name='$printername'"
-    Invoke-CimMethod -InputObject $defaultprinter -MethodName SetDefaultPrinter
-        if ($? -ne "True") {    
-            Write-Warning "!!! Failed to set $printername as default"
-            $warningcount = $warningcount + 1
-    } else {
-        Write-Output "Success setting $printername as default"
-        Write-Output ""
-      }
-}
 }
 
 $null = Stop-Transcript

@@ -1,8 +1,8 @@
 PrinterName	DriverName	IPAddress	Port	Location
 sydprint1	SATO CL4NX Plus 203dpi	192.168.100.99	9100	SYD
 melprint1	Xerox Global Print Driver PCL6	192.168.100.100	9100	MEL
-aklprint1	SATO CL4NX Plus 305dpi	192.168.100.101	9100	AKL
+aklprint1	Zebra 2746e	192.168.100.101	9100	AKL
 wlgprint1	Xerox Global Print Driver PCL6	192.168.100.102	9100	WLG
 chcprint1	SATO PW4NX	192.168.100.103	9100	CHC
-perprint1	Xerox GPD PCL6 V5.951.9.0	192.168.100.104	9100	PER
+perprint1	Zebra 105S (300 dpi)	192.168.100.104	9100	PER
 adlprint1	SATO CT4-LX 305dpi	192.168.100.105	9100	ADL
