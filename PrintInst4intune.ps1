@@ -24,29 +24,30 @@ Do {
     Start-Sleep -Seconds 1
     $x = $x - 1
     if ($x -eq 0) { 
-        throw "Spooler did not restart!" 
+        $null = Stop-Transcript
+        throw "Spooler did not restart!"
     }
 } until (Get-Service Spooler | Where-Object { $_.Status -eq "Running" })
 
 if (-not(Test-Path -Path $rootfolder -ErrorAction Ignore)) {
+    $null = Stop-Transcript
     throw "The root folder $rootfolder does not exist!"
 }
 if (-not(Test-Path -Path $inputfile -ErrorAction Ignore)) {
+    $null = Stop-Transcript
     throw "The input file $inputfile does not exist!"
 }
 
 $cerdetail  = Get-ChildItem -Path $rootfolder -Filter $filtercer -File -Recurse
 $infdetail  = Get-ChildItem -Path $rootfolder -Filter $filterinf -File -Recurse
 
-if ($null = $cerdetail) {
-    Write-Output "" 
+if ($null -eq $cerdetail) {
     Write-Output "No certificates found in $rootfolder..."
-    Write-Output ""
+    Write-Output "***"
 } else {
     Clear-Host
-    Write-Output "" 
+    Write-Output "***" 
     Write-Output "Installing certificates found in $rootfolder..."
-    Write-Output ""
     
     foreach ($cer in $cerdetail) {
         $cerpath   = $cer.FullName
@@ -55,14 +56,13 @@ if ($null = $cerdetail) {
     }    
 }
 
-if ($null = $infdetail) {
-    Write-Output "" 
+if ($null -eq $infdetail) {
+    $null = Stop-Transcript
     throw "No INF files found in $rootfolder... exiting."
 } else {
     Clear-Host
-    Write-Output "" 
+    Write-Output "***" 
     Write-Output "Importing drivers found in $rootfolder..."
-    Write-Output "" 
     
     foreach ($inf in $infdetail) {
         $infpath = $inf.FullName
@@ -70,19 +70,18 @@ if ($null = $infdetail) {
     Start-Process "Pnputil.exe" -ArgumentList "/add-driver $infpath /install" -Wait
         if ($? -ne "True") {
             Write-Warning "!!! Failed to import drivers from $infpath"
+            Write-Output "***"
             $warningcount = $warningcount + 1
         } else {
-            Write-Output ""
             Write-Output "Successfully imported drivers from $infpath"
-            Write-Output ""
+            Write-Output "***"
           }
     }    
 }    
 
 Clear-Host
-Write-Output ""
+Write-Output "***"
 Write-Output "Adding drivers, ports and printers specified in $inputfile..."
-Write-Output ""
 
 # import input file
 $printerdetails = Import-Csv $inputfile -Delimiter "`t" 
@@ -99,7 +98,7 @@ Add-PrinterDriver -Name $drivername
         $warningcount = $warningcount + 1
     } else {
         Write-Output "Successfully added $drivername driver for $printername"
-        Write-Output ""
+        Write-Output "***"
       }
 
 if (-not(Get-PrinterPort -Name "tcpip_$ipaddress" -ErrorAction Ignore)) { 
@@ -109,11 +108,11 @@ if (-not(Get-PrinterPort -Name "tcpip_$ipaddress" -ErrorAction Ignore)) {
             $warningcount = $warningcount + 1
         } else {
             Write-Output "Successfully added tcpip_$ipaddress port for $printername"
-            Write-Output ""
+            Write-Output "***"
           }
 } else {
     Write-Output "Port tcpip_$ipaddress exists... skipping"
-    Write-Output ""
+    Write-Output "***"
   }
 }
 
@@ -121,10 +120,10 @@ $null = Stop-Transcript
 Clear-Host
 
 if ($warningcount -eq 0) {
-    Write-Output ""
+    Write-Output "***"
     Write-Output "No errors occurred - printers added successfully"
     Write-Output "Log file saved to $logfile." 
 } else {
-    Write-Output ""
+    Write-Output "***"
     Write-Output "There were $warningcount errors - please review $logfile"
   }
