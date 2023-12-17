@@ -6,8 +6,9 @@ $inputfile      = $rootfolder + "PrinterDetails.txt"              # tab delimite
 $colour         = $false                                          # $false for greyscale, $true for colour
 $duplex         = "Onesided"                                      # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
 $logfile        = "$rootfolder" + "_PrintInst4intune.log"         # for intune use $logfile = "$env:TEMP" + "\_PrintInst4intune.log"
+$warningcount   = 0                                               # count of failed commands
 
-$null = Start-Transcript $logfile -Append -Force
+$null = Start-Transcript $logfile -Force
 
 $printerdetails = Import-Csv $inputfile -Delimiter "`t" 
 
@@ -22,23 +23,25 @@ if (-not(Get-Printer -Name $printername -ErrorAction Ignore)) {
     Add-Printer -Name $printername -DriverName $drivername -PortName "tcpip_$ipaddress" -Comment "$ipaddress - $drivername" -Location $location
         if ($? -ne "True") {    
             Write-Warning "Failed to add $printername"
+            Write-Output "***"
             $warningcount = $warningcount + 1
         } else {
             Write-Output "Success adding $printername"
-            Write-Output ""
+            Write-Output "***"
           }
 } else {
     Write-Output "Printer $printername exists... skipping"
-    Write-Output ""
+    Write-Output "***"
   }
 
 Set-PrintConfiguration -PrinterName $printername -Color $colour -DuplexingMode $duplex
     if ($? -ne "True") {    
         Write-Warning "!!! Failed to set properties for $printername"
+        Write-Output "***"
         $warningcount = $warningcount + 1
     } else {
         Write-Output "Success setting properties for $printername"
-        Write-Output ""
+        Write-Output "***"
       }
     }
 # Set default printer
@@ -53,10 +56,11 @@ if ($printername -eq "AKL-Default") {
     Invoke-CimMethod -InputObject $defaultprinter -MethodName SetDefaultPrinter
         if ($? -ne "True") {    
             Write-Warning "!!! Failed to set $printername as default"
+            Write-Output "***"
             $warningcount = $warningcount + 1
     } else {
         Write-Output "Success setting $printername as default"
-        Write-Output ""
+        Write-Output "***"
       }
 }
 # }
