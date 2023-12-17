@@ -121,7 +121,8 @@ Clear-Host
 
 if ($warningcount -eq 0) {
     Write-Output "***"
-    Write-Output "No errors occurred - printers added successfully"
+    Write-Output "No errors occurred - drivers and ports added successfully"
+    Write-Output "Please Note: this script has NOT added any printers to the user session. Use PrintInst4intune-user.ps1 to deploy printers to users."
     Write-Output "Log file saved to $logfile." 
 } else {
     Write-Output "***"
