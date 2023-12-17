@@ -13,11 +13,11 @@ $null = Start-Transcript $logfile -Force
 $printerdetails = Import-Csv $inputfile -Delimiter "`t" 
 
 foreach ($printer in $printerdetails) {
-    $printername    = $printer.PrinterName
-    $drivername     = $printer.DriverName
-    $ipaddress      = $printer.IPAddress
-#    $port           = $printer.Port
-    $location       = $printer.location
+    $printername    = $printer.PrinterName.Trim()
+    $drivername     = $printer.DriverName.Trim()
+    $ipaddress      = $printer.IPAddress.Trim()
+ #   $port           = $printer.Port
+    $location       = $printer.location.Trim()
 
 if (-not(Get-Printer -Name $printername -ErrorAction Ignore)) {
     Add-Printer -Name $printername -DriverName $drivername -PortName "tcpip_$ipaddress" -Comment "$ipaddress - $drivername" -Location $location
@@ -43,7 +43,7 @@ Set-PrintConfiguration -PrinterName $printername -Color $colour -DuplexingMode $
         Write-Output "Success setting properties for $printername"
         Write-Output "***"
       }
-    }
+
 # Set default printer
 
 # if deploying with groups, you may have two queues for the printer 
@@ -63,7 +63,7 @@ if ($location -eq "AKL") {
         Write-Output "***"
       }
 }
-# }
+}
 
 $null = Stop-Transcript
 Clear-Host
