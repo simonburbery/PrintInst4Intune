@@ -1,7 +1,5 @@
-# 
 # Installs any driver signing certificates (cer) and print drivers (inf) found within a source folder
 # Extract all print drivers into the same folder as the script - run in system context.
-# Run the 
 
 # run with Administrative rights, or for Intune deploy in System context to groups of users
 
