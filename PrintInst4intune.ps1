@@ -46,8 +46,9 @@ if ($null -eq $cerdetail) {
     Write-Output "***"
 } else {
     Clear-Host
-    Write-Output "***" 
+    Write-Output "" 
     Write-Output "Installing certificates found in $rootfolder..."
+    Write-Output "" 
     
     foreach ($cer in $cerdetail) {
         $cerpath   = $cer.FullName
@@ -61,8 +62,9 @@ if ($null -eq $infdetail) {
     throw "No INF files found in $rootfolder... exiting."
 } else {
     Clear-Host
-    Write-Output "***" 
+    Write-Output "" 
     Write-Output "Importing drivers found in $rootfolder..."
+    Write-Output "" 
     
     foreach ($inf in $infdetail) {
         $infpath = $inf.FullName
@@ -80,8 +82,9 @@ if ($null -eq $infdetail) {
 }    
 
 Clear-Host
-Write-Output "***"
-Write-Output "Adding drivers, ports and printers specified in $inputfile..."
+Write-Output ""
+Write-Output "Adding drivers and ports specified in $inputfile..."
+Write-Output ""
 
 # import input file
 $printerdetails = Import-Csv $inputfile -Delimiter "`t" 
@@ -95,6 +98,7 @@ foreach ($printer in $printerdetails) {
 Add-PrinterDriver -Name $drivername
     if ($? -ne "True") {    
         Write-Warning "!!! Failed to add $drivername driver for $printername"
+        Write-Output "***"
         $warningcount = $warningcount + 1
     } else {
         Write-Output "Successfully added $drivername driver for $printername"
@@ -105,6 +109,7 @@ if (-not(Get-PrinterPort -Name "tcpip_$ipaddress" -ErrorAction Ignore)) {
     Add-PrinterPort -Name "tcpip_$ipaddress" -PrinterHostAddress $ipaddress -PortNumber $port
         if ($? -ne "True") {    
             Write-Warning "!!! Failed to add tcpip_$ipaddress port for $printername"
+            Write-Output "***"
             $warningcount = $warningcount + 1
         } else {
             Write-Output "Successfully added tcpip_$ipaddress port for $printername"
@@ -123,8 +128,10 @@ if ($warningcount -eq 0) {
     Write-Output "***"
     Write-Output "No errors occurred - drivers and ports added successfully"
     Write-Output "Please Note: this script has NOT added any printers to the user session. Use PrintInst4intune-user.ps1 to deploy printers to users."
-    Write-Output "Log file saved to $logfile." 
+    Write-Output "Log file saved to $logfile."
+    Write-Output "***"
 } else {
     Write-Output "***"
     Write-Output "There were $warningcount errors - please review $logfile"
+    Write-Output "***"
   }
