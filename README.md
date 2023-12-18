@@ -1,6 +1,6 @@
 PrintInst4Intune
 
- Used for modern workplace printing setups (when they have basic requirements not warranting spend on a cloud printing or other solution).
+ Use for modern workplace printing setups i.e. no print server (when they have basic requirements not warranting spend on a cloud printing or other solution).
   
  A two-part script: 
  **Device-targeted script** - PrintInst4Intune.ps1:
