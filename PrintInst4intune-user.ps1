@@ -52,8 +52,8 @@ Set-PrintConfiguration -PrinterName $printername -Color $colour -DuplexingMode $
 # or we could use an if statement using the location or another column from the input file. e.g. HR,Sales,Accounts or AKL,WLG,CHC. 
 # Add column(s) and data to the input file to cater for your scenario.
 if ($location -eq "AKL") {
-    $defaultprinter = Get-CimInstance -Class Win32_Printer -Filter "Name='$printername'"
-    Invoke-CimMethod -InputObject $defaultprinter -MethodName SetDefaultPrinter
+        $defaultprinter = Get-CimInstance -Class Win32_Printer -Filter "Name='$printername'"
+        $null = Invoke-CimMethod -InputObject $defaultprinter -MethodName SetDefaultPrinter
         if ($? -ne "True") {    
             Write-Warning "!!! Failed to set $printername as default"
             Write-Output "***"
