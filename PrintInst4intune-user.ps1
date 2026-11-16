@@ -1,11 +1,10 @@
 # Add printers, set properties and default printer
 
-$rootfolder     = "c:\temp\"                                      # for intune or other deployment software use $rootfolder = ".\"
-Set-Location $rootfolder
-$inputfile      = $rootfolder + "PrinterDetails.txt"              # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
+$rootfolder     = $PSScriptRoot
+$inputfile      = Join-Path $rootfolder "PrinterDetails.txt"      # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
 $colour         = $false                                          # $false for greyscale, $true for colour
 $duplex         = "Onesided"                                      # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
-$logfile        = "$rootfolder" + "_PrintInst4intune.log"         # for intune use $logfile = "$env:TEMP" + "\_PrintInst4intune.log"
+$logfile        = Join-Path $rootfolder "_PrintInst4intune.log"
 $warningcount   = 0                                               # count of failed commands
 
 $null = Start-Transcript $logfile -Force

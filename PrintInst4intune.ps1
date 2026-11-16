@@ -1,17 +1,18 @@
 # Installs any driver signing certificates (cer) and print drivers (inf) found within a source folder
-# Extract all print drivers into the same folder as the script - run in system context.
+# Place extracted driver packages in a Drivers subfolder - run in system context.
 
 # run with Administrative rights, or for Intune deploy in System context to groups of users
 
-$rootfolder     = "c:\temp\"                                      # for intune use $rootfolder = ".\" 
-$inputfile      = "$rootfolder" + "PrinterDetails.txt"       # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
+$rootfolder     = $PSScriptRoot
+$driverSourceFolder = Join-Path $rootfolder "Drivers"             # this folder is removed after a successful setup
+$inputfile      = Join-Path $rootfolder "PrinterDetails.txt"      # tab delimited file containing columns 'printername' 'drivername' 'ipaddress' 'port' 'location'
 # moved to PrintInst4intune-user.ps1 ==> $colour         = $false         # default to black only, set to $true for colour
 # moved to PrintInst4intune-user.ps1 ==> $duplex         = "Onesided"     # default to one-sided, can be set to TwoSidedLongEdge or TwoSidedShortEdge
-$filterinf      = "*.inf"                                         # the files in the root folder structure that enable the import and installation of printer drivers 
+$filterinf      = "*.inf"                                         # the files that enable the import and installation of printer drivers
 $filtercer      = "*.cer"                                         # the certificate files that may exist in the source structure
 $certstoreroot  = "Cert:\LocalMachine\Root"                       # the local machine root certificate store to which cer files are imported
 $certstoretrusted  = "Cert:\LocalMachine\TrustedPublisher"        # the local machine trusted publisher certificate store to which cer files are imported
-$logfile        = "$rootfolder" + "_PrintInst4intune.log"         # for intune use $logfile = "$env:TEMP" + "\_printinst4intune.log"
+$logfile        = Join-Path $rootfolder "_PrintInst4intune.log"
 $warningcount   = 0                                               # any actions that fail increment this counter
 
 $null = Start-Transcript -Path $logfile
@@ -35,47 +36,64 @@ if (-not(Test-Path -Path $inputfile -ErrorAction Ignore)) {
     $null = Stop-Transcript
     throw "The input file $inputfile does not exist!"
 }
+if (-not(Test-Path -LiteralPath $driverSourceFolder -PathType Container -ErrorAction Ignore)) {
+    $null = Stop-Transcript
+    throw "The driver source folder $driverSourceFolder does not exist!"
+}
 
-$cerdetail  = Get-ChildItem -Path $rootfolder -Filter $filtercer -File -Recurse
-$infdetail  = Get-ChildItem -Path $rootfolder -Filter $filterinf -File -Recurse
+$cerdetail  = Get-ChildItem -LiteralPath $driverSourceFolder -Filter $filtercer -File -Recurse
+$infdetail  = Get-ChildItem -LiteralPath $driverSourceFolder -Filter $filterinf -File -Recurse
 
 if ($null -eq $cerdetail) {
-    Write-Output "No certificates found in $rootfolder..."
+    Write-Output "No certificates found in $driverSourceFolder..."
     Write-Output "***"
 } else {
     Clear-Host
     Write-Output "" 
-    Write-Output "Installing certificates found in $rootfolder..."
+    Write-Output "Installing certificates found in $driverSourceFolder..."
     Write-Output "" 
     
     foreach ($cer in $cerdetail) {
         $cerpath   = $cer.FullName
-        Import-Certificate -FilePath $cerpath -CertStoreLocation $certstoreroot
-        Import-Certificate -FilePath $cerpath -CertStoreLocation $certstoretrusted
+        try {
+            Import-Certificate -FilePath $cerpath -CertStoreLocation $certstoreroot -ErrorAction Stop | Out-Null
+            Import-Certificate -FilePath $cerpath -CertStoreLocation $certstoretrusted -ErrorAction Stop | Out-Null
+        } catch {
+            Write-Warning "!!! Failed to install certificate from ${cerpath}: $($_.Exception.Message)"
+            Write-Output "***"
+            $warningcount = $warningcount + 1
+        }
     }    
 }
 
 if ($null -eq $infdetail) {
     $null = Stop-Transcript
-    throw "No INF files found in $rootfolder... exiting."
+    throw "No INF files found in $driverSourceFolder... exiting."
 } else {
     Clear-Host
     Write-Output "" 
-    Write-Output "Importing drivers found in $rootfolder..."
+    Write-Output "Importing drivers found in $driverSourceFolder..."
     Write-Output "" 
     
     foreach ($inf in $infdetail) {
         $infpath = $inf.FullName
     
-    Start-Process "Pnputil.exe" -ArgumentList "/add-driver $infpath /install" -Wait
-        if ($? -ne "True") {
-            Write-Warning "!!! Failed to import drivers from $infpath"
+        try {
+            & pnputil.exe /add-driver $infpath /install
+            $pnputilExitCode = $LASTEXITCODE
+            if ($pnputilExitCode -ne 0) {
+                Write-Warning "!!! Failed to import drivers from ${infpath} (pnputil exit code $pnputilExitCode)"
+                Write-Output "***"
+                $warningcount = $warningcount + 1
+            } else {
+                Write-Output "Successfully imported drivers from $infpath"
+                Write-Output "***"
+            }
+        } catch {
+            Write-Warning "!!! Failed to run pnputil for ${infpath}: $($_.Exception.Message)"
             Write-Output "***"
             $warningcount = $warningcount + 1
-        } else {
-            Write-Output "Successfully imported drivers from $infpath"
-            Write-Output "***"
-          }
+        }
     }    
 }    
 
@@ -117,6 +135,16 @@ if (-not(Get-PrinterPort -Name "tcpip_$ipaddress" -ErrorAction Ignore)) {
     Write-Output "Port tcpip_$ipaddress exists... skipping"
     Write-Output "***"
   }
+}
+
+if ($warningcount -eq 0) {
+    try {
+        Remove-Item -LiteralPath $driverSourceFolder -Recurse -Force -ErrorAction Stop
+        Write-Output "Removed driver source folder $driverSourceFolder"
+    } catch {
+        Write-Warning "!!! Driver setup succeeded, but failed to remove ${driverSourceFolder}: $($_.Exception.Message)"
+        $warningcount = $warningcount + 1
+    }
 }
 
 $null = Stop-Transcript
